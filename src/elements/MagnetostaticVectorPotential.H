@@ -31,6 +31,14 @@
 #include <string>
 #include <tuple>
 
+namespace impactx::parser_detail {
+    template <int N, typename... T>
+    AMREX_GPU_HOST_DEVICE AMREX_NO_INLINE
+    auto call_parser (amrex::ParserExecutor<N> const& f, T... arg)
+    {
+        return f(arg...);
+    }
+}
 
 namespace impactx::elements
 {
@@ -345,15 +353,17 @@ namespace MagnetostaticVectorPotentialData
             amrex::ParticleReal dHdpt = 0_prt;
             amrex::ParticleReal z = zeval;
 
+            using impactx::parser_detail::call_parser;
+
             // Evaluate the vector potential and its derivatives
-            auto const ax = m_dfunc_ax(x, y, z) * m_scale;
-            auto const ay = m_dfunc_ay(x, y, z) * m_scale;
-            auto const daxdx = m_dfunc_daxdx(x, y, z) * m_scale;
-            auto const daxdy = m_dfunc_daxdy(x, y, z) * m_scale;
-            auto const daydx = m_dfunc_daydx(x, y, z) * m_scale;
-            auto const daydy = m_dfunc_daydy(x, y, z) * m_scale;
-            auto const dazdx = m_dfunc_dazdx(x, y, z) * m_scale;
-            auto const dazdy = m_dfunc_dazdy(x, y, z) * m_scale;
+            auto const ax = call_parser(m_dfunc_ax, x, y, z) * m_scale;
+            auto const ay = call_parser(m_dfunc_ay, x, y, z) * m_scale;
+            auto const daxdx = call_parser(m_dfunc_daxdx, x, y, z) * m_scale;
+            auto const daxdy = call_parser(m_dfunc_daxdy, x, y, z) * m_scale;
+            auto const daydx = call_parser(m_dfunc_daydx, x, y, z) * m_scale;
+            auto const daydy = call_parser(m_dfunc_daydy, x, y, z) * m_scale;
+            auto const dazdx = call_parser(m_dfunc_dazdx, x, y, z) * m_scale;
+            auto const dazdy = call_parser(m_dfunc_dazdy, x, y, z) * m_scale;
 
             // Implementation of derivatives for rectilinear magnetostatic element (static units):
             // Radical appearing in the Hamiltonian (equal to the value of pz):
